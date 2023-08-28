@@ -25,8 +25,8 @@ random.seed(seed)
 tf.keras.utils.set_random_seed(seed)
 
 space = {'num_layers': hp.choice('num_layers', [2, 3, 4]),
-         'hidden_dim': hp.choice('hidden_dim', [16, 32, 64]),
-         'mlp_dim': hp.choice('mlp_dim', [16, 32, 64]),
+         'hidden_dim': hp.choice('hidden_dim', [4, 5, 6]),
+         'mlp_dim': hp.choice('mlp_dim', [4, 5, 6]),
          'batch_size': hp.choice('batch_size', [6, 7, 8]),
          'learning_rate': hp.loguniform("learning_rate", np.log(0.001), np.log(0.01)),
          }
@@ -37,8 +37,8 @@ def fit_and_score(params):
 
     config = {}
     config["num_layers"] = params['num_layers']
-    config["hidden_dim"] = params['num_layers']*params['hidden_dim']
-    config["mlp_dim"] = params['mlp_dim']
+    config["hidden_dim"] = params['num_layers']*(2**params['hidden_dim'])
+    config["mlp_dim"] = 2 ** params['mlp_dim']
     config["num_heads"] = params['num_layers']
     config["dropout_rate"] = 0.1
 
