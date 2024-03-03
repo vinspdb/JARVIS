@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 from hyperopt import Trials, STATUS_OK, tpe, fmin, hp
@@ -31,6 +32,17 @@ space = {'num_layers': hp.choice('num_layers', [2, 3, 4]),
          'learning_rate': hp.loguniform("learning_rate", np.log(0.001), np.log(0.01)),
          }
 
+def get_image_size(num_col):
+    import math
+    matx = round(math.sqrt(num_col))
+    if num_col>(matx*matx):
+        matx = matx + 1
+        padding = (matx*matx) - num_col
+    else:
+        padding = (matx*matx) - num_col
+    return matx, padding
+
+
 def fit_and_score(params):
     print(params)
     start_time = perf_counter()
@@ -43,12 +55,11 @@ def fit_and_score(params):
     config["dropout_rate"] = 0.1
 
     config["image_size"] = X_a_train.shape[1]
-    if dataset == 'bpi12w_complete' or dataset == 'bpi12_all_complete' or dataset == 'bpi12_work_all':
-        config["patch_size"] = int(math.sqrt(int((X_a_train.shape[1] * X_a_train.shape[1]) / 4)))
-    elif dataset == 'bpi13_incidents':
-        config["patch_size"] = int(math.sqrt(int((X_a_train.shape[1] * X_a_train.shape[1]) / 16)))
-    else:
-        config["patch_size"] = int(math.sqrt(int((X_a_train.shape[1] * X_a_train.shape[1]) / 9)))
+
+    column_log = pd.read_csv('fold/'+dataset+'.csv').shape[1]-1
+    matx, padding = get_image_size(column_log)
+    config["patch_size"] = padding+column_log
+
     print('patch size--->', config["patch_size"])
 
     config["num_patches"] = int(config["image_size"] ** 2 / config["patch_size"] ** 2)
